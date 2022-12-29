@@ -42,13 +42,12 @@
           </ClientOnly>
         </NuxtLink>
       </form>
+      <it-button @click="testFetch">Test Fetch</it-button>
     </n-card>
   </main>
 </template>
 
 <script setup lang="ts">
-import { NCard, NInput, NIcon, NButton, useMessage } from "naive-ui";
-import { MailIcon, LockIcon } from "vue-tabler-icons";
 import pocketbaseEs from "pocketbase";
 // import { $message } from "#app";
 // import ItButton from "@/node_modules/equal-vue/src/components/button/ItButton.vue";
@@ -62,23 +61,21 @@ useHead({
   meta: [{ name: "naive-ui-style" }],
 });
 
-const { $message } = useNuxtApp();
-
-const pb = inject(PB_KEY) as pocketbaseEs;
+const { $message, $pb } = useNuxtApp();
 
 const router = useRouter();
-const message = useMessage();
 
 const email = ref("");
 const password = ref("");
 const accessLoading = ref(false);
 
-if (pb.authStore.isValid) router.push("/");
+if ($pb.authStore.isValid) router.push("/");
 
 const access = async () => {
   accessLoading.value = true;
   try {
-    await pb.collection("users").authWithPassword(email.value, password.value);
+    console.info("asked for login");
+    await $pb.collection("users").authWithPassword(email.value, password.value);
     $message.success({ text: "Successfully logged in", duration: 2000 });
     setTimeout(() => {
       console.info("que?");
@@ -87,11 +84,18 @@ const access = async () => {
     }, 300);
     console.log("timed out");
   } catch (e) {
+    console.error("didnt want to login", e);
     $message.danger({
       text: "Could not login, check email and password",
       duration: 2000,
     });
     accessLoading.value = false;
   }
+};
+
+const testFetch = () => {
+  useFetch("http://127.0.0.1:8090/api/collections/users/records")
+    .then((res) => console.info(res))
+    .catch((e) => console.error("fetch test error", e));
 };
 </script>

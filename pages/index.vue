@@ -63,11 +63,12 @@
     </main>
     <template #title><span>OpenForms</span></template>
     <template #avatar>
-      <n-avatar class="bg-indigo-600">
-        <n-icon>
-          <FormsIcon />
-        </n-icon>
-      </n-avatar>
+      <it-icon
+        box
+        box-color="#3051ff"
+        color="#fff"
+        name="forms_add_on"
+      ></it-icon>
     </template>
     <template #extra>
       <div class="flex flex-row gap-3">
@@ -88,14 +89,14 @@
             class="m-0 p-0"
             variant="beam"
             :square="false"
-            :name="pb.authStore.model?.email"
+            :name="$pb.authStore.model?.email"
           ></Avatar>
           <template #menu>
             <it-dropdown-menu>
               <it-dropdown-item
                 class="text-[#F93155] hover:!bg-[#F93155]"
                 @click.prevent="
-                  pb.authStore.clear(), router.push('/auth/login')
+                  $pb.authStore.clear(), router.push('/auth/login')
                 "
                 icon="logout"
                 >Log out</it-dropdown-item
@@ -150,42 +151,8 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  NButton,
-  NIcon,
-  NPageHeader,
-  NGrid,
-  NGi,
-  NStatistic,
-  NBreadcrumb,
-  NBreadcrumbItem,
-  NAvatar,
-  NSpace,
-  NDropdown,
-  NTabs,
-  NTabPane,
-  NBackTop,
-  NInput,
-  NInputGroup,
-  NTooltip,
-  NPopover,
-  NSpin,
-  NEmpty,
-  NCard,
-  // useMessage,
-} from "naive-ui";
 import Avatar from "vue-boring-avatars";
-import type { Ref } from "vue";
-import {
-  UserIcon,
-  FormsIcon,
-  MenuIcon,
-  EyeIcon,
-  ArrowLeftIcon,
-} from "vue-tabler-icons";
-import { PB_KEY } from "~~/utils";
 import type PocketBase from "pocketbase";
-import { v4 as uuidv4, validate } from "uuid";
 import { AccessType } from "~~/types";
 // import { useSupabase } from "../store/supabase";
 // import { Message } from "equal-vue";
@@ -197,12 +164,11 @@ definePageMeta({
   middleware: "require-auth",
 });
 
-const { $message } = useNuxtApp();
+const { $message, $pb } = useNuxtApp();
 
 const router = useRouter();
-const pb = inject(PB_KEY) as PocketBase;
 
-let isMobile: bool | undefined =
+let isMobile: boolean | undefined =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
@@ -217,7 +183,7 @@ const {
   refresh: refreshForms,
 } = await useLazyAsyncData("forms", async () => {
   try {
-    const f = await pb.collection("forms").getList(page.value, 9);
+    const f = await $pb.collection("forms").getList(page.value, 9);
     return f.items;
   } catch (err) {
     throw new Error("could not complete request", { cause: err });
@@ -242,13 +208,14 @@ watch(forms, (val) => {
 
 const createForm = () => {
   creatingForm.value = true;
-  pb.collection("forms")
+  $pb
+    .collection("forms")
     .create({
       title: "New form",
       lastSaved: Date.now(),
       description: undefined,
       items: [],
-      owner: pb.authStore.model?.id,
+      owner: $pb.authStore.model?.id,
       accessFill: AccessType.PUBLIC,
       accessEdit: AccessType.PRIVATE,
     })
@@ -268,7 +235,8 @@ const confirmDeleteForm = (formName: string, formId: string) => {
 
 const deleteForm = (id: string) => {
   deletingForm.value = true;
-  pb.collection("forms")
+  $pb
+    .collection("forms")
     .delete(id)
     .then(() => {
       $message.success({ text: "Successfully deleted form", duration: 3000 });

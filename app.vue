@@ -1,15 +1,10 @@
 <template>
   <NuxtLayout>
-    <it-loadingbar></it-loadingbar>
-    <n-message-provider>
-      <NuxtPage />
-    </n-message-provider>
+    <NuxtPage />
   </NuxtLayout>
 </template>
 
 <script setup>
-import { NMessageProvider } from "naive-ui";
-
 import { provide } from "vue";
 
 import dayjs from "dayjs";
@@ -27,12 +22,6 @@ provide(DAYJS_KEY, dayjs);
 hljs.registerLanguage("javascript", javascript); // TODO Use provide/inject for hljs
 hljs.registerLanguage("typescript", typescript);
 provide(HLJS_KEY, hljs);
-
-const checkPb = inject(PB_KEY);
-if (checkPb === undefined) {
-  const pb = new PocketBase("http://127.0.0.1:8090");
-  provide(PB_KEY, pb);
-}
 
 // const nuxtApp = useNuxtApp();
 
